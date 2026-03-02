@@ -1,0 +1,27 @@
+# config.yaml — PRS Pipeline Configuration
+
+# ── Step 1: Preprocessing ──────────────────────────────────────────────────
+# Path prefix to your genotype files.
+# Use a glob-style prefix, e.g. /path/to/ukb22418_c*_b0_v2  (per-chrom)
+#                            or /path/to/merged_genotypes      (single file)
+genotype_prefix: "/home/sharedFolder/referenceData/ukb/genotypes/ukb22418_c*[0-9]_b0_v2"
+
+# Where to write the auto-generated samplesheet
+samplesheet_output: "/home/vpasumarthy3/PRS/test_pipeline/samplesheet.csv"
+
+# ── Step 2: pgsc_calc ─────────────────────────────────────────────────────
+output_dir: "/home/vpasumarthy3/PRS/test_pipeline/"
+target_build: "GRCh37"        # GRCh37 or GRCh38
+profile: "conda"              # docker, conda, or singularity
+
+# ── Step 3: Validation ────────────────────────────────────────────────────
+# Path to merged file that has PRS scores + phenotype + covariates
+data_file: "/home/vpasumarthy3/PRS/test_pipeline/ukbtest/score/aggregated_scores.txt"
+val_output_dir: "/home/vpasumarthy3/PRS/test_pipeline/val"
+
+# ── Step 4: Score Export ──────────────────────────────────────────────────
+# pgsc_calc aggregated scores file (found under output_dir after Step 2)
+# Leave blank to auto-detect from output_dir
+scores_file: ""
+# Output path for the clean exported table
+export_output: "/home/vpasumarthy3/PRS/test_pipeline/prs_scores_export.xlsx"
