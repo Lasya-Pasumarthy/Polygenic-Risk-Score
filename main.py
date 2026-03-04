@@ -34,7 +34,7 @@ def main():
             "  preprocess    — validate input files and generate samplesheet\n"
             "  run_pgsc_calc — run pgsc_calc via Nextflow\n"
             "  validate      — compute AUC, OR, R², Cohen's d, and plots\n"
-            "  export_scores — export clean PRS scores table (CSV + XLSX)"
+            "  export_scores — export a combined dataframe (metadata + PRS)"
         )
     )
     parser.add_argument(
