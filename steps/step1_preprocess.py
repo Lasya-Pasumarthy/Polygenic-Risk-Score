@@ -12,7 +12,7 @@ import sys
 import tempfile
 
 
-# ── File detection helpers ──────────────────────────────────────────────────
+# ── File detection helpers ──
 
 PLINK1_EXTS = (".bed", ".bim", ".fam")
 PLINK2_EXTS = (".pgen", ".pvar", ".psam")
@@ -70,7 +70,7 @@ def find_prefixes(glob_pattern):
     return sorted(prefixes)
 
 
-# ── Samplesheet building ────────────────────────────────────────────────────
+# ── Samplesheet building ──
 
 def build_samplesheet_rows(prefixes):
     """
@@ -107,7 +107,7 @@ def build_samplesheet_rows(prefixes):
     return rows, errors
 
 
-# ── User review loop ────────────────────────────────────────────────────────
+# ── User review loop ──
 
 FIELDNAMES = ["sampleset", "path_prefix", "chrom", "format"]
 
@@ -119,13 +119,13 @@ def write_samplesheet(rows, path):
         writer.writerows(rows)
 
 def print_samplesheet(path):
-    print(f"\n{'─'*60}")
+    print(f"\n{'─ '*42}")
     print(f"  Samplesheet preview  →  {path}")
-    print(f"{'─'*60}")
+    print(f"{'─ '*42}")
     with open(path) as f:
         for line in f:
             print(" ", line, end="")
-    print(f"{'─'*60}\n")
+    print(f"{'─ '*42}\n")
 
 def open_in_editor(path):
     """Open samplesheet in the user's preferred editor."""
@@ -150,7 +150,7 @@ def review_loop(rows, samplesheet_path):
     while True:
         print_samplesheet(samplesheet_path)
         print("Options:")
-        print("  [c] Confirm and continue")
+        print("  [c] Confirm samplesheet")
         print("  [e] Edit samplesheet in terminal editor")
         print("  [p] Re-print preview")
         print("  [q] Quit / abort pipeline")
@@ -164,13 +164,13 @@ def review_loop(rows, samplesheet_path):
         elif choice == "p":
             print_samplesheet(samplesheet_path)
         elif choice == "q":
-            print("[ABORT] Exiting pipeline.")
+            print("[QUIT] Exiting pipeline.")
             sys.exit(0)
         else:
-            print("[?] Unrecognised option. Please enter c, e, p, or q.")
+            print("[!!] Unrecognised option. Please enter c, e, p, or q.")
 
 
-# ── Main entry ──────────────────────────────────────────────────────────────
+# ── Main entry ──
 
 def run(config):
     print("Step 1: Preprocessing check and samplesheet generation\n")
@@ -197,7 +197,7 @@ def run(config):
     for p in prefixes:
         fmt, _ = detect_format(p)
         chrom  = extract_chrom(p)
-        status = f"format={fmt}, chrom={chrom or 'not detected'}" if fmt else "❌ unrecognised format"
+        status = f"format={fmt}, chrom={chrom or 'not detected'}" if fmt else "unrecognised format"
         print(f"  {p}  →  {status}")
 
     print()
@@ -234,4 +234,4 @@ def run(config):
         print(f"[OK] Samplesheet saved to: {samplesheet_path}")
         print("     Pass this path as 'samplesheet' when prompted in Step 2.\n")
 
-    print("Step 1 complete.")
+    print("Preprocess check success!")

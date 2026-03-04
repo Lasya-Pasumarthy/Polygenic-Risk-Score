@@ -33,7 +33,7 @@ def build_command(samplesheet, pgs_id, target_build, profile, op_dir, optional_f
 def run(config):
     print("Step 2: Running pgsc_calc\n")
 
-    # ── Required inputs ──────────────────────────────────────────────────────
+    # ── Required inputs ──
     samplesheet = input(
         "Enter absolute path to samplesheet.csv\n"
         "(generated in Step 1, or provide manually): "
@@ -44,13 +44,13 @@ def run(config):
         return
 
     pgs_id = input(
-        "\nEnter PGS Catalog ID (e.g. PGS000039) or comma-separated IDs: "
+        "\nEnter PGS Catalog ID (e.g. PGS002308): "
     ).strip()
     if not pgs_id:
         print("[ERROR] PGS ID is required.")
         return
 
-    # ── Config values ────────────────────────────────────────────────────────
+    # ── Config values ──
     target_build = config.get("target_build", "GRCh37").strip()
     profile      = config.get("profile", "conda").strip()
     op_dir       = config.get("output_dir", "").strip()
@@ -61,8 +61,8 @@ def run(config):
 
     os.makedirs(op_dir, exist_ok=True)
 
-    # ── Optional flags ───────────────────────────────────────────────────────
-    print("\n[Optional flags]  Press Enter to skip any you don't need.\n")
+    # ── Optional flags ──
+    print("\n[Optional flags] Press Enter to skip.\n")
 
     optional_flags = {}
 
@@ -78,31 +78,34 @@ def run(config):
     optional_flags["liftover"] = prompt_optional(
         "liftover", "enable liftover if build mismatch (true/false)", "true"
     )
+    optional_flags["liftover_chain"] = prompt_optional(
+    	"liftover_chain", "provide liftover chain file (only if liftover is true)"
+    )
+    optional_flags["score_file"] = prompt_optional(
+ 	"score_file", "provide custom scoring file"
+    )
     optional_flags["keep_ambiguous"] = prompt_optional(
         "keep_ambiguous", "keep ambiguous SNPs (true/false)", "false"
     )
 
-    # ── Build and preview command ────────────────────────────────────────────
+    # ── Build and preview command ──
     cmd = build_command(samplesheet, pgs_id, target_build, profile, op_dir, optional_flags)
 
-    print("\n[INFO] Command to be run:")
+    print("\n[INFO] Command to run:")
     print("  " + " \\\n    ".join(cmd))
 
-    confirm = input("\nProceed? [y/N]: ").strip().lower()
+    confirm = input("\nProceed? [y/n]: ").strip().lower()
     if confirm != "y":
-        print("[ABORT] Cancelled by user.")
+        print("[QUIT] Cancelled by user.")
         sys.exit(0)
 
-    # ── Run ──────────────────────────────────────────────────────────────────
+    # ── Run ──
     print("\n[INFO] Launching pgsc_calc via Nextflow...\n")
     try:
         subprocess.run(cmd, check=True)
-        print("\n[OK] pgsc_calc completed successfully.")
+        print("\n[OK] pgsc_calc ran successfully.")
         print(f"     Results are in: {op_dir}")
-        print(
-            "\n[NEXT] Run Step 4 to export a clean scores table:\n"
-            "       python main.py --step export_scores"
-        )
+        
     except FileNotFoundError:
         print(
             "[ERROR] 'nextflow' not found. Make sure Nextflow is installed and on your PATH.\n"

@@ -17,7 +17,7 @@ from statsmodels.discrete.discrete_model import Logit
 from statsmodels.tools import add_constant
 
 
-# ── Statistics helpers ──────────────────────────────────────────────────────
+# ── Statistics helpers ──
 
 def cohen_d(x, y):
     nx, ny = len(x), len(y)
@@ -37,7 +37,7 @@ def fit_logit(y, X):
         return None
 
 
-# ── Plotting helpers ────────────────────────────────────────────────────────
+# ── Plotting helpers ──
 
 def plot_roc(y, y_prob_base, y_prob_full, auc_base, auc_full, out_dir):
     fpr_b, tpr_b, _ = roc_curve(y, y_prob_base)
@@ -54,7 +54,7 @@ def plot_roc(y, y_prob_base, y_prob_full, auc_base, auc_full, out_dir):
     path = os.path.join(out_dir, "roc_curve.png")
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"  [PLOT] ROC curve saved → {path}")
+    print(f"  [PLOT] ROC curve saved at: {path}")
 
 
 def plot_risk_gradient(data, prs_col, out_dir, n_deciles=10):
@@ -66,13 +66,13 @@ def plot_risk_gradient(data, prs_col, out_dir, n_deciles=10):
     fig, ax = plt.subplots(figsize=(7, 4))
     bars = ax.bar(decile_prev.index, decile_prev.values * 100, color="steelblue", edgecolor="white")
     ax.set_xlabel("PRS Decile")
-    ax.set_ylabel("Case Prevalence (%)")
+    ax.set_ylabel("Observed Prevalence (%)")
     ax.set_title("Risk Gradient by PRS Decile")
     ax.set_xticks(range(1, n_deciles + 1))
     path = os.path.join(out_dir, "risk_gradient.png")
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"  [PLOT] Risk gradient saved → {path}")
+    print(f"  [PLOT] Risk gradient saved at: {path}")
 
 
 def plot_prs_distribution(data, prs_col, out_dir):
@@ -90,10 +90,10 @@ def plot_prs_distribution(data, prs_col, out_dir):
     path = os.path.join(out_dir, "prs_distribution.png")
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"  [PLOT] PRS distribution saved → {path}")
+    print(f"  [PLOT] PRS distribution saved at: {path}")
 
 
-# ── Main entry ──────────────────────────────────────────────────────────────
+# ── Main entry ──
 
 def run(config):
     print("Step 3: Validating PRS\n")
@@ -134,8 +134,8 @@ def run(config):
     #val_output_dir = config.get("val_output_dir", "val_output").strip()
     #os.makedirs(val_output_dir, exist_ok=True)
 
-    # ── Load data ────────────────────────────────────────────────────────────
-    data_file = config.get("data_file", "").strip()
+    # ── Load data ──
+    """data_file = config.get("data_file", "").strip()
     if not data_file:
         data_file = input("Enter absolute path to merged (PRS + phenotype + covariates) file: ").strip()
 
@@ -153,7 +153,7 @@ def run(config):
     print(f"\n[INFO] Loaded {len(data)} rows, {len(data.columns)} columns.")
     print("Columns:", ", ".join(data.columns.tolist()))
 
-    # ── Column selection ─────────────────────────────────────────────────────
+    # ── Column selection ──
     prs_col = input("\nEnter the column name for PRS scores: ").strip()
     if prs_col not in data.columns:
         print(f"[ERROR] Column '{prs_col}' not found.")
@@ -181,18 +181,18 @@ def run(config):
         print("[ERROR] No valid covariates found. At minimum, include age or sex.")
         return
 
-    print(f"\n[INFO] Using covariates: {cov_cols}")
+    print(f"\n[INFO] Using covariates: {cov_cols}")"""
 
     # Drop rows with missing values in any relevant column
-    cols_needed = ["Status", prs_col] + cov_cols
+    cols_needed = ["Status", prs_col] + cov
     data = data[cols_needed].dropna()
     print(f"[INFO] Analysis sample size after dropping NAs: {len(data)}")
 
     y = data["Status"]
-    X_cov = data[cov_cols]
+    X_cov = data[cov]
     X_full = pd.concat([data[[prs_col]], X_cov], axis=1)
 
-    # ── Model fitting ─────────────────────────────────────────────────────────
+    # ── Model fitting ──
     print("\n[INFO] Fitting logistic regression models...")
     model_base = fit_logit(y, X_cov)
     model_full = fit_logit(y, X_full)
@@ -201,18 +201,18 @@ def run(config):
         print("[ERROR] Model fitting failed. Check your data for separation or multicollinearity.")
         return
 
-    # ── Incremental R² (McFadden) ─────────────────────────────────────────────
+    # ── Incremental R2 (McFadden) ──
     r2_base = 1 - (model_base.llf / model_base.llnull)
     r2_full = 1 - (model_full.llf / model_full.llnull)
     inc_r2  = r2_full - r2_base
 
-    # ── AUC ───────────────────────────────────────────────────────────────────
+    # ── AUC ──
     y_prob_base = model_base.predict(add_constant(X_cov))
     y_prob_full = model_full.predict(add_constant(X_full))
     auc_base = roc_auc_score(y, y_prob_base)
     auc_full = roc_auc_score(y, y_prob_full)
 
-    # ── Odds Ratios ───────────────────────────────────────────────────────────
+    # ── Odds Ratios ──
     or_vals = np.exp(model_full.params)
     ci      = np.exp(model_full.conf_int())
     or_table = pd.DataFrame({
@@ -222,13 +222,13 @@ def run(config):
         "p-value":  model_full.pvalues,
     })
 
-    # ── Cohen's d and t-test ──────────────────────────────────────────────────
+    # ── Cohen's d and t-test ──
     cases    = data[data["Status"] == 1][prs_col].values
     controls = data[data["Status"] == 0][prs_col].values
     d        = cohen_d(cases, controls)
     t_stat, p_val = ttest_ind(cases, controls)
 
-    # ── Print summary ─────────────────────────────────────────────────────────
+    # ── Print summary ──
     print("\n" + "="*55)
     print("  Validation Results")
     print("="*55)
@@ -243,7 +243,7 @@ def run(config):
     print(or_table.to_string())
     print("="*55 + "\n")
 
-    # ── Save stats to CSV ─────────────────────────────────────────────────────
+    # ── Save stats to CSV ──
     stats_path = os.path.join(val_output_dir, "validation_summary.csv")
     summary = pd.DataFrame({
         "metric": [
@@ -256,9 +256,9 @@ def run(config):
     })
     summary.to_csv(stats_path, index=False)
     or_table.to_csv(os.path.join(val_output_dir, "odds_ratios.csv"))
-    print(f"  [FILE] Summary stats → {stats_path}")
+    print(f"  [FILE] Summary stats saved at: {stats_path}")
 
-    # ── Plots ─────────────────────────────────────────────────────────────────
+    # ── Plots ──
     print("\n[INFO] Generating plots...")
     plot_roc(y, y_prob_base, y_prob_full, auc_base, auc_full, val_output_dir)
     plot_risk_gradient(data, prs_col, val_output_dir)
